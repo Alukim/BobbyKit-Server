@@ -5,9 +5,9 @@ from flask_restplus import Resource
 @api.route('/api/accounts')
 class AccountsController(Resource):
 
-    @api.route('/api/accounts/login', methods=['POST'])
+    @api.route('/login', methods=['POST'])
     def login():
-        return "login"
+        return {'TEST':, 'TEST'}
 
     @api.route('/api/accounts/register', methods=['POST'])
     def register():
