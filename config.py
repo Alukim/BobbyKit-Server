@@ -10,4 +10,5 @@ class Config(object):
     JWT_BLACKLIST_TOKEN_CHECKS = ['access']
     PROPAGATE_EXCEPTIONS = True
     SWAGGER_UI_DOC_EXPANSION = 'list'
+    RESTPLUS_MASK_SWAGGER = False
     FLASK_APP = 'bobby.py'

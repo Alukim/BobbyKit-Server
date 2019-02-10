@@ -1,62 +1,52 @@
-from app import api
+from app import accountControllerNamespace
 from app.models.User import User
 from app.models.RevokedTokenModel import RevokedTokenModel
 from app.controllers.parsers.AccountControllerParsers import AccountControllerParsers
-from flask_restplus import Resource, reqparse, fields, marshal_with, Namespace
-from flask import jsonify, abort
+from app.controllers.documentationModels.AccountControllerDocumentationModels import userResponseModel, userRegistrationModel, userLoginModel, token_model
+from app.controllers.documentationModels.ErrorDocumentionModels import error_model
+from app.controllers.responses.ErrorResponses import errorMessage
+from app.controllers.responses.TokenResponseModel import TokenResponseModel 
+from app.controllers.responses.UserResponseModels import userResponseModels
+from flask_restplus import Resource, marshal_with
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 
-ns = Namespace('accounts', description='Accounts endpoints')
-
+@accountControllerNamespace.response(404, 'User not found', error_model)
+@accountControllerNamespace.response(400, 'Validation error', error_model)
 class AccountsLoginController(Resource):
 
-    userLoginModel = ns.model('Login', {'email' : fields.String('User email.'), 'password' : fields.String('User password')})
-
-    @ns.expect(userLoginModel)
+    @accountControllerNamespace.marshal_with(token_model)
+    @accountControllerNamespace.expect(userLoginModel)
     def post(self):
         data = AccountControllerParsers.userLoginParser.parse_args()
 
         currentUser = User.findUserByEmail(data.email)
 
         if not currentUser:
-            return {'message' : 'User with email: {} does not exists'.format(data.email)}, 404
+            return errorMessage.userDoesNotExist(data.email), 404
         
         if User.verifyPassword(data.password, currentUser.password_hash):
             accessToken = create_access_token(identity = currentUser.id)
-            return jsonify({
-                'message': 'Logged in as {}'.format(currentUser.email),
-                'access_token': accessToken,
-            })
+            return TokenResponseModel.userLoggedId(currentUser.email, accessToken), 200
         else:
-            return {'message' : 'Wrong credentials'}, 404
+            return errorMessage.wrongCredential(), 400
 
+@accountControllerNamespace.response(400, 'Validation error', error_model)
+@accountControllerNamespace.response(500, 'Server error', error_model)
 class AccountsRegisterController(Resource):
 
-    userRegistrationDetailsModel = ns.model('User Details model', {
-        'imageId': fields.Integer('Id of user image'),
-        'firstName' : fields.String('User first name'),
-        'lastName' : fields.String('User last name'),
-        'email' : fields.String('User email')
-    })
-
-    userRegistrationModel = ns.model('Registration model', {
-        'password': fields.String("User password"),
-        'confirmPassword' : fields.String("Confirmation password"),
-        'details' : fields.Nested(userRegistrationDetailsModel)
-    })
-
-    @ns.expect(userRegistrationModel)
+    @accountControllerNamespace.marshal_with(token_model)
+    @accountControllerNamespace.expect(userRegistrationModel)
     def post(self):
         data = AccountControllerParsers.userRegisterParser.parse_args()
         userDetails = AccountControllerParsers.userDetailsParser.parse_args(req=data)
 
         if data.password != data.confirmPassword :
-            return {'message' : 'Password and Confirmation password is not equal'}, 404
+            return errorMessage.invalidPasswordAndConfirmationPassword(), 400
 
         currentUser = User.findUserByEmail(userDetails.email)
 
         if currentUser :
-            return {'message': 'User with email {} already exist'.format(userDetails.email)}, 404
+            return errorMessage.userAlreadyExist(userDetails.email), 400
 
         newUser = User(
             imageId = userDetails.imageId,
@@ -69,22 +59,33 @@ class AccountsRegisterController(Resource):
         try:
             newUser.saveToDb()
             access_token = create_access_token(identity = newUser.id)
-            return {
-                'message': 'User {} was created'.format(newUser.email),
-                'access_token': access_token
-                }
+            return TokenResponseModel.userCreated(newUser.email, access_token), 201
         except:
-            return {'message': 'Something went wrong'}, 500
+            return errorMessage.somethingWentWrong(), 500
 
 class AccountsLogoutController(Resource):
 
     @jwt_required
-    @ns.doc(security='apikey')
+    @accountControllerNamespace.doc(security='apikey')
     def post(self):
         jti = get_raw_jwt()['jti']
         try:
             revoked_token = RevokedTokenModel(jti = jti)
             revoked_token.add()
-            return {'message': 'User logout'}
+            return TokenResponseModel.userLogout(), 200
         except:
-            return {'message': 'Something went wrong'}, 500
+            return errorMessage.somethingWentWrong(), 500
+
+@accountControllerNamespace.response(401, 'Unauthorized', error_model)
+@accountControllerNamespace.response(500, 'Server error', error_model)
+class AccountsController(Resource):
+
+    @jwt_required
+    @accountControllerNamespace.marshal_with(userResponseModel)
+    @accountControllerNamespace.doc(security='apikey')
+    def get(self):
+        userId = get_jwt_identity()
+
+        user = User.findUserById(userId)
+
+        return userResponseModels.userResponse(user), 200

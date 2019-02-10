@@ -1,6 +1,6 @@
 import logging
 from flask import Flask, Blueprint
-from flask_restplus import Api
+from flask_restplus import Api, Namespace
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -78,29 +78,42 @@ def RegisterExceptionHandlers():
     def handle_fresh_token_required(e):
         return {'message': 'Fresh token required'}, 401
 
-    # @api.errorhandler(DecodeError)
-    # def handle_decode_error(e):
-    #     return {'message': 'Invalid token'}, 422
-
 RegisterExceptionHandlers()
 
-from app.controllers.AccountController import (
-    ns as ns1,
-    AccountsLoginController, AccountsLogoutController, AccountsRegisterController)
+imageControllerNamespace = Namespace('image', description='Images endpoints')
+accountControllerNamespace = Namespace('accounts', description='Accounts endpoints')
+toolsCategoryControllerNamespace = Namespace('toolCategory', description='Tool category endpoints')
+coordinateControllerNamespace = Namespace('coordinate', description='Coordinate endpoints')
+offerControllerNamespace = Namespace('offer', description="Offer endpoints")
 
-api.add_namespace(ns1)
+from app.controllers.AccountController import AccountsLoginController, AccountsLogoutController, AccountsRegisterController, AccountsController
+from app.controllers.ImageController import UploadImageController, GetImageController
+from app.controllers.ToolsCategoryController import ToolCategoryController
+from app.controllers.CoordinateController import CoordinateController
+from app.controllers.OfferController import CreateOfferController, OfferController, UserOfferController, BookingOfferController
 
-ns1.add_resource(AccountsLoginController, '/login')
-ns1.add_resource(AccountsLogoutController, '/logout')
-ns1.add_resource(AccountsRegisterController, '/register')
+api.add_namespace(accountControllerNamespace)
+api.add_namespace(imageControllerNamespace)
+api.add_namespace(toolsCategoryControllerNamespace)
+api.add_namespace(coordinateControllerNamespace)
+api.add_namespace(offerControllerNamespace)
 
-from app.controllers.ImageController import (
-    ns as ns2,
-    UploadImageController, GetImageController)
+accountControllerNamespace.add_resource(AccountsLoginController, '/login')
+accountControllerNamespace.add_resource(AccountsLogoutController, '/logout')
+accountControllerNamespace.add_resource(AccountsRegisterController, '/register')
+accountControllerNamespace.add_resource(AccountsController, '')
 
-api.add_namespace(ns2)
-ns2.add_resource(UploadImageController, '')
-ns2.add_resource(GetImageController, '/<id>')
+imageControllerNamespace.add_resource(UploadImageController, '')
+imageControllerNamespace.add_resource(GetImageController, '/<int:id>')
+
+toolsCategoryControllerNamespace.add_resource(ToolCategoryController, '')
+
+coordinateControllerNamespace.add_resource(CoordinateController, '/distance')
+
+offerControllerNamespace.add_resource(CreateOfferController, '')
+offerControllerNamespace.add_resource(OfferController, '/<int:id>')
+offerControllerNamespace.add_resource(UserOfferController, '/user')
+offerControllerNamespace.add_resource(BookingOfferController, '/<int:id>/bookTool')
 
 if __name__ == '__main__':
     app.run(debug=True)

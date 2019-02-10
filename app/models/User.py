@@ -19,6 +19,10 @@ class User(db.Model):
     def findUserByEmail(cls, email):
         return cls.query.filter_by(email = email).first()
 
+    @classmethod
+    def findUserById(cls, id):
+        return cls.query.filter_by(id = id).first()
+
     @staticmethod
     def generateHashedPassword(password):
         return sha256.hash(password)
