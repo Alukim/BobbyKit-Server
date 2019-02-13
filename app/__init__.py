@@ -38,6 +38,9 @@ def create_tables():
 from app.models.FileContents import FileContent
 from app.models.User import User
 from app.models.RevokedTokenModel import RevokedTokenModel
+from app.models.Availability import Availability
+from app.models.Parameter import Parameter
+from app.models.Offer import Offer
 
 @jwt.token_in_blacklist_loader
 def check_if_token_in_blacklist(decrypted_token):
@@ -116,4 +119,4 @@ offerControllerNamespace.add_resource(UserOfferController, '/user')
 offerControllerNamespace.add_resource(BookingOfferController, '/<int:id>/bookTool')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()

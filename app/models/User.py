@@ -11,6 +11,8 @@ class User(db.Model):
     email = db.Column(db.String(120), index=True, unique=True, nullable = False)
     password_hash = db.Column(db.String(128), nullable = False)
 
+    offers = db.relationship("Offer", back_populates="user")
+
     def saveToDb(self):
         db.session.add(self)
         db.session.commit()

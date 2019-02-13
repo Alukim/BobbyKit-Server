@@ -10,6 +10,8 @@ from app.controllers.responses.UserResponseModels import userResponseModels
 from flask_restplus import Resource, marshal_with
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 
+import re
+
 @accountControllerNamespace.response(404, 'User not found', error_model)
 @accountControllerNamespace.response(400, 'Validation error', error_model)
 class AccountsLoginController(Resource):
@@ -34,7 +36,7 @@ class AccountsLoginController(Resource):
 @accountControllerNamespace.response(500, 'Server error', error_model)
 class AccountsRegisterController(Resource):
 
-    @accountControllerNamespace.marshal_with(token_model)
+    @accountControllerNamespace.marshal_with(token_model, 201)
     @accountControllerNamespace.expect(userRegistrationModel)
     def post(self):
         data = AccountControllerParsers.userRegisterParser.parse_args()
@@ -47,6 +49,21 @@ class AccountsRegisterController(Resource):
 
         if currentUser :
             return errorMessage.userAlreadyExist(userDetails.email), 400
+
+        if len(data.password) < 5 : 
+            return {'message': "Minimum length of password is 5"}, 400
+
+        if not re.search("[A-Z]", data.password) : 
+            return {'message': "Password must have one uppercase letter"}, 400
+
+        if not re.search("[a-z]", data.password) : 
+            return {'message': "Password must have one lowercase letter"}, 400
+
+        if not re.search("[0-9]", data.password) : 
+            return {'message': "Password must have one number"}, 400
+
+        if not re.search("[^a-zA-Z0-9]", data.password) : 
+            return {'message': "Password must have one special character"}, 400
 
         newUser = User(
             imageId = userDetails.imageId,

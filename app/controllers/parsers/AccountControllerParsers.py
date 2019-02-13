@@ -1,9 +1,16 @@
 from flask_restplus import Resource, reqparse, fields, marshal_with
+from validate_email import validate_email
 
 class AccountControllerParsers():
 
+    def email(email_str):
+        if validate_email(email_str):
+            return email_str
+        else:
+            raise ValueError('{} is not a valid email'.format(email_str))
+
     userLoginParser = reqparse.RequestParser(bundle_errors=True)
-    userLoginParser.add_argument('email', help = 'Email is required', required = True, location = 'json')
+    userLoginParser.add_argument('email', help = 'Email is required', required = True, location = 'json', type = email)
     userLoginParser.add_argument('password', help = 'Password is required', required = True, location = 'json')
 
     userRegisterParser = reqparse.RequestParser(bundle_errors=True)
@@ -15,4 +22,4 @@ class AccountControllerParsers():
     userDetailsParser.add_argument('imageId', type = int, required = False, location=('details',))
     userDetailsParser.add_argument('firstName', help = "First name is required", required = True, location=('details',))
     userDetailsParser.add_argument('lastName', help = "Last name is required", required = True, location=('details',))
-    userDetailsParser.add_argument('email', help = "Email is required", required = True, location=('details',))
+    userDetailsParser.add_argument('email', help = "Email is required", required = True, type = email, location=('details',))
