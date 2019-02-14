@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended.exceptions import NoAuthorizationError, CSRFError, InvalidHeaderError, JWTDecodeError, WrongTokenError, RevokedTokenError, FreshTokenRequired
+from flask_marshmallow import Marshmallow
 
 __author__ = 'Marcin Gurbiel | Bartosz Kowalski'
 
@@ -18,7 +19,6 @@ authorizations = {
 }
 
 app = Flask(__name__)
-app.logger.setLevel(logging.NOTSET)
 blueprint = Blueprint('BobbyKit API', __name__, url_prefix='/api')
 api = Api(blueprint, doc='/documentation', version='1.0', title='BobbyKit API documentation', description='API documentation of BobbyKit project', authorizations = authorizations)
 
@@ -30,6 +30,8 @@ jwt = JWTManager(app)
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+ma = Marshmallow(app)
 
 @app.before_first_request
 def create_tables():
@@ -93,7 +95,7 @@ from app.controllers.AccountController import AccountsLoginController, AccountsL
 from app.controllers.ImageController import UploadImageController, GetImageController
 from app.controllers.ToolsCategoryController import ToolCategoryController
 from app.controllers.CoordinateController import CoordinateController
-from app.controllers.OfferController import CreateOfferController, OfferController, UserOfferController, BookingOfferController
+from app.controllers.OfferController import OffersController, OfferController, UserOfferController, BookingOfferController
 
 api.add_namespace(accountControllerNamespace)
 api.add_namespace(imageControllerNamespace)
@@ -113,7 +115,7 @@ toolsCategoryControllerNamespace.add_resource(ToolCategoryController, '')
 
 coordinateControllerNamespace.add_resource(CoordinateController, '/distance')
 
-offerControllerNamespace.add_resource(CreateOfferController, '')
+offerControllerNamespace.add_resource(OffersController, '')
 offerControllerNamespace.add_resource(OfferController, '/<int:id>')
 offerControllerNamespace.add_resource(UserOfferController, '/user')
 offerControllerNamespace.add_resource(BookingOfferController, '/<int:id>/bookTool')

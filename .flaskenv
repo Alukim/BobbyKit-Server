@@ -1,2 +1,1 @@
 FLASK_APP=bobby.py
-FLASK_DEBUG=1

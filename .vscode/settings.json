@@ -1,4 +1,4 @@
 {
     "python.linting.enabled": false,
-    "python.pythonPath": "D:\\Projects\\Study\\BobbyKit-Server\\bobby\\Scripts\\python.exe"
+    "python.pythonPath": "env\\Scripts\\python.exe"
 }

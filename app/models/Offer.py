@@ -30,6 +30,10 @@ class Offer(db.Model):
     def findOfferById(cls, id):
         return cls.query.filter_by(id = id).first()
 
+    @classmethod
+    def findOffersByUserId(cls, userId):
+        return cls.query.filter_by(userId = userId)
+
     def saveToDb(self):
         db.session.add(self)
         db.session.commit()
@@ -84,26 +88,4 @@ class Offer(db.Model):
     def dbUpdate(self):
         db.session.update(self)
         db.session.commit()
-
-    def serialize(self):
-        class parameterResponse:
-            key
-            value
-
-        print(self.parameters)
-        print(self.availability)
-        return {
-            'id': self.id,
-            'imageId': self.imageId,
-            'category' : self.category,
-            'name' : self.name,
-            'pricePerDay' : self.pricePerDay,
-            'bail' : self.bail,
-            'description' : self.description,
-            'parameters' : list(map(lambda x: parameterResponse(key = x.key, value = x.value), self.parameters)),
-            'city' : self.city,
-            'longitude' : self.longitude,
-            'latitude' : self.latitude,
-            'availabilityOn' : self.availabilityOn,
-        }
 
