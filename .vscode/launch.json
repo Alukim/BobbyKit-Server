@@ -15,7 +15,7 @@
             "name": "Python: Remote Attach",
             "type": "python",
             "request": "attach",
-            "port": 5678,
+            "port": 5000,
             "host": "localhost",
             "pathMappings": [
                 {
@@ -48,9 +48,16 @@
             "name": "Python: Flask",
             "type": "python",
             "request": "launch",
+            "stopOnEntry": false,
+            "pythonPath": "${config:python.pythonPath}",
             "module": "flask",
+            "env": {
+                "FLASK_APP": "bobby.py"
+            },
             "args": [
-                "run"
+                "run",
+                "--no-debugger",
+                "--no-reload"
             ]
         },
         {
