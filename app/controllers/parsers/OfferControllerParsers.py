@@ -21,3 +21,13 @@ class offerControllerParsers:
     bookToolParser = reqparse.RequestParser()
     bookToolParser.add_argument('id', help = 'Id is required', required = True, type = int)
 
+    getOffersParser = reqparse.RequestParser()
+    getOffersParser.add_argument('category', location = 'args', type = str)
+    getOffersParser.add_argument('city', location = 'args', type = str)
+    getOffersParser.add_argument('content', location = 'args', type = str)
+    getOffersParser.add_argument('maximumPrice', location = 'args', type = float)
+    getOffersParser.add_argument('minimumPrice', location = 'args', type = float)
+    getOffersParser.add_argument('maximumDistance', location = 'args', type = float)
+    getOffersParser.add_argument('longitude', location = 'args', type = float)
+    getOffersParser.add_argument('latitude', location = 'args', type = float)
+

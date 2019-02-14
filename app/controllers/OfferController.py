@@ -61,10 +61,14 @@ class OffersController(Resource):
 
         return {'id': newOffer.id}, 201
 
+    @offerControllerNamespace.doc(parser=offerControllerParsers.getOffersParser)
     def get(self):
+        query = offerControllerParsers.getOffersParser.parse_args()
+
+        offers = Offer.getOffersWithPredicates(query)
+        offer_schema = OfferSchema(many=True)
+        return offer_schema.jsonify(offers)
         
-
-
 @offerControllerNamespace.response(400, 'Validation error', error_model)
 @offerControllerNamespace.response(500, 'Server error', error_model)
 class OfferController(Resource):
@@ -89,6 +93,7 @@ class OfferController(Resource):
 
     def get(self, id):
         offer = Offer.findOfferById(id)
+        offer_schema = OfferSchema()
         return offer_schema.jsonify(offer)
 
 @offerControllerNamespace.response(400, 'Validation error', error_model)
@@ -120,10 +125,11 @@ class BookingOfferController(Resource):
             return {'message': 'Offer does not exist'}, 400
 
         if offer.userId == userId:
-            retrun {'message': 'Cannot booked yourself tool'}, 400
+            return {'message': 'Cannot booked yourself tool'}, 400
 
         if offer.availability.isBooked:
             return {'message': 'Offer is already booked'}, 400
 
         offer.bookTool(userId)
+        offer.dbUpdate()
         return {'id': offer.id}, 204

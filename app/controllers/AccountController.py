@@ -9,7 +9,8 @@ from app.controllers.responses.TokenResponseModel import TokenResponseModel
 from app.controllers.responses.UserResponseModels import userResponseModels
 from flask_restplus import Resource, marshal_with
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
-
+from app.controllers.exceptions.ValidationException import ValidationException
+from validate_email import validate_email
 import re
 
 @accountControllerNamespace.response(404, 'User not found', error_model)
@@ -20,6 +21,9 @@ class AccountsLoginController(Resource):
     @accountControllerNamespace.expect(userLoginModel)
     def post(self):
         data = AccountControllerParsers.userLoginParser.parse_args()
+
+        if validate_email(data.email):
+            raise ValidationException('{} is not a valid email'.format(data.email), 'email')
 
         currentUser = User.findUserByEmail(data.email)
 
@@ -42,6 +46,24 @@ class AccountsRegisterController(Resource):
         data = AccountControllerParsers.userRegisterParser.parse_args()
         userDetails = AccountControllerParsers.userDetailsParser.parse_args(req=data)
 
+        if not validate_email(userDetails.email):
+            raise ValidationException('{} is not a valid email'.format(userDetails.email), 'details.email')
+
+        if len(data.password) < 5 : 
+            raise ValidationException('Minimum length of password is 5', 'password')
+
+        if not re.search("[A-Z]", data.password) : 
+            raise ValidationException('Password must have one uppercase letter', 'password')
+
+        if not re.search("[a-z]", data.password) : 
+            raise ValidationException('Password must have one lowercase letter', 'password')
+
+        if not re.search("[0-9]", data.password) : 
+            raise ValidationException('Password must have one number', 'password')
+
+        if not re.search("[^a-zA-Z0-9]", data.password) : 
+            raise ValidationException('Password must have one special character', 'password')
+
         if data.password != data.confirmPassword :
             return errorMessage.invalidPasswordAndConfirmationPassword(), 400
 
@@ -49,21 +71,6 @@ class AccountsRegisterController(Resource):
 
         if currentUser :
             return errorMessage.userAlreadyExist(userDetails.email), 400
-
-        if len(data.password) < 5 : 
-            return {'message': "Minimum length of password is 5"}, 400
-
-        if not re.search("[A-Z]", data.password) : 
-            return {'message': "Password must have one uppercase letter"}, 400
-
-        if not re.search("[a-z]", data.password) : 
-            return {'message': "Password must have one lowercase letter"}, 400
-
-        if not re.search("[0-9]", data.password) : 
-            return {'message': "Password must have one number"}, 400
-
-        if not re.search("[^a-zA-Z0-9]", data.password) : 
-            return {'message': "Password must have one special character"}, 400
 
         newUser = User(
             imageId = userDetails.imageId,

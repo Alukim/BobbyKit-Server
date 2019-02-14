@@ -7,6 +7,7 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended.exceptions import NoAuthorizationError, CSRFError, InvalidHeaderError, JWTDecodeError, WrongTokenError, RevokedTokenError, FreshTokenRequired
 from flask_marshmallow import Marshmallow
+from app.controllers.exceptions.ValidationException import ValidationException
 
 __author__ = 'Marcin Gurbiel | Bartosz Kowalski'
 
@@ -82,6 +83,13 @@ def RegisterExceptionHandlers():
     @api.errorhandler(FreshTokenRequired)
     def handle_fresh_token_required(e):
         return {'message': 'Fresh token required'}, 401
+
+    @api.errorhandler(ValidationException)
+    def handle_validation_exception(e):
+        return {
+            'message': e.args[0],
+            'field': e.field
+        }, 400
 
 RegisterExceptionHandlers()
 

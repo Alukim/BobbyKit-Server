@@ -3,6 +3,8 @@ from datetime import datetime
 from app.models.Availability import Availability
 from app.models.Parameter import Parameter
 from app import app
+from sqlalchemy import or_
+from geopy import distance
 
 class Offer(db.Model):
     __tablename__ = 'offers'
@@ -32,11 +34,34 @@ class Offer(db.Model):
 
     @classmethod
     def findOffersByUserId(cls, userId):
-        return cls.query.filter_by(userId = userId)
+        return cls.query.filter_by(userId = userId).all()
 
-    def saveToDb(self):
-        db.session.add(self)
-        db.session.commit()
+    @classmethod
+    def getOffersWithPredicates(cls, query):
+        queries = cls.query
+
+        if query.city:
+            queries = queries.filter(Offer.city == query.city)
+
+        if query.minimumPrice:
+            queries = queries.filter((Offer.pricePerDay > query.minimumPrice) | (Offer.pricePerDay == query.minimumPrice))
+
+        if query.maximumPrice:
+            queries = queries.filter((Offer.pricePerDay < query.maximumPrice) | (Offer.pricePerDay == query.maximumPrice))
+
+        if query.content:
+            splittedContent = query.content.split(' ')
+            queries = queries.filter((Offer.category.in_(splittedContent)) | (Offer.description.in_(splittedContent)) | (Offer.name.in_(splittedContent)))
+
+        # if query.longitude and query.latitude and query.maximumDistance:
+        #     coords_1 = (latitude, longitude)
+        #     coords_2 = (query.latitude, query.longitude)
+
+        #     distanceInKm = distance.distance(coords_1, coords_2).km
+
+        #     queries.filter(distanceInKm <= query.maximumDistance)
+
+        return queries.all()
 
     def create(self, details):
         self.__updateOffer(details, True)
@@ -69,7 +94,7 @@ class Offer(db.Model):
         else:
             self.dbUpdate()
 
-    def bookTool(self, starDate, endDate, userId):
+    def bookTool(self, userId):
         self.availability.book(userId)
 
     def __createParameters(self, params):
