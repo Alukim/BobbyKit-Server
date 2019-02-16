@@ -23,3 +23,7 @@ offerDetailsModel = offerControllerNamespace.model('Offer Details model', {
 offerModel = offerControllerNamespace.model('Offer model', {
     'offer' : fields.Nested(offerDetailsModel)
 })
+
+bookToolModel = offerControllerNamespace.model('Book tool model', {
+    'bookedFor': fields.Integer('BookedFor')
+})

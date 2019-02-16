@@ -19,7 +19,7 @@ class offerControllerParsers:
     offerDetailsParser.add_argument('availabilityOn', required = True, type = int, location=('offer',))
 
     bookToolParser = reqparse.RequestParser()
-    bookToolParser.add_argument('id', help = 'Id is required', required = True, type = int)
+    bookToolParser.add_argument('bookedFor', help = 'Id is required', required = True, type = int)
 
     getOffersParser = reqparse.RequestParser()
     getOffersParser.add_argument('category', location = 'args', type = str)

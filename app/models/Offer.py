@@ -96,8 +96,8 @@ class Offer(db.Model):
         else:
             self.dbUpdate()
 
-    def bookTool(self, userId):
-        self.availability.book(userId)
+    def bookTool(self, userId, bookedFor):
+        self.availability.book(userId, bookedFor)
 
     def __createParameters(self, params):
         self.parameters = list()
@@ -113,5 +113,4 @@ class Offer(db.Model):
         db.session.commit()
 
     def dbUpdate(self):
-        db.session.update(self)
         db.session.commit()

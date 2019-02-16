@@ -15,9 +15,10 @@ class Availability(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def book(self, userId):
+    def book(self, userId, bookedFor):
         self.userId = userId
         self.isBooked = True
+        self.bookedFor = bookedFor
 
     def commitSession(self):
         db.session.commit()

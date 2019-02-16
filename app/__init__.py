@@ -11,6 +11,8 @@ from flask_marshmallow import Marshmallow
 from app.controllers.exceptions.ValidationException import ValidationException
 import flask_whooshalchemy as whooshalchemy
 
+from flask_cors import CORS
+
 __author__ = 'Marcin Gurbiel | Bartosz Kowalski'
 
 authorizations = {
@@ -22,6 +24,7 @@ authorizations = {
 }
 
 app = Flask(__name__)
+CORS(app)
 blueprint = Blueprint('BobbyKit API', __name__, url_prefix='/api')
 api = Api(blueprint, doc='/documentation', version='1.0', title='BobbyKit API documentation', description='API documentation of BobbyKit project', authorizations = authorizations)
 

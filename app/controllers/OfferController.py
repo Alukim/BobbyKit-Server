@@ -11,7 +11,7 @@ from flask import jsonify
 from flask_restplus import Resource, marshal_with
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 from app.controllers.parsers.OfferControllerParsers import offerControllerParsers
-from app.controllers.documentationModels.OfferControllerDocumentationModels import offerModel
+from app.controllers.documentationModels.OfferControllerDocumentationModels import offerModel, bookToolModel
 from app.models.Offer import Offer
 from app.models.Parameter import Parameter
 from app.models.Availability import Availability
@@ -128,7 +128,9 @@ class BookingOfferController(Resource):
 
     @jwt_required
     @offerControllerNamespace.doc(security='apikey')
+    @offerControllerNamespace.expect(bookToolModel)
     def patch(self, id):
+        data = offerControllerParsers.bookToolParser.parse_args()
         userId = get_jwt_identity()
 
         offer = Offer.findOfferById(id)
@@ -142,6 +144,9 @@ class BookingOfferController(Resource):
         if offer.availability.isBooked:
             return {'message': 'Offer is already booked'}, 400
 
-        offer.bookTool(userId)
+        if offer.availabilityOn < data.bookedFor:
+            return {'message': 'Booked for is grater than availability'}, 400
+
+        offer.bookTool(userId, data.bookedFor)
         offer.dbUpdate()
         return {'id': offer.id}, 204
