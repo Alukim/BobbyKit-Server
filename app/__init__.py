@@ -5,9 +5,11 @@ from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
+from jwt.exceptions import ExpiredSignatureError
 from flask_jwt_extended.exceptions import NoAuthorizationError, CSRFError, InvalidHeaderError, JWTDecodeError, WrongTokenError, RevokedTokenError, FreshTokenRequired
 from flask_marshmallow import Marshmallow
 from app.controllers.exceptions.ValidationException import ValidationException
+import flask_whooshalchemy as whooshalchemy
 
 __author__ = 'Marcin Gurbiel | Bartosz Kowalski'
 
@@ -44,6 +46,8 @@ from app.models.RevokedTokenModel import RevokedTokenModel
 from app.models.Availability import Availability
 from app.models.Parameter import Parameter
 from app.models.Offer import Offer
+
+whooshalchemy.whoosh_index(app, Offer)
 
 @jwt.token_in_blacklist_loader
 def check_if_token_in_blacklist(decrypted_token):
@@ -83,6 +87,10 @@ def RegisterExceptionHandlers():
     @api.errorhandler(FreshTokenRequired)
     def handle_fresh_token_required(e):
         return {'message': 'Fresh token required'}, 401
+
+    @api.errorhandler(ExpiredSignatureError)
+    def handle_expired_signature_error(e):
+        return {'message': 'Signature expired. Try to log in'}, 401
 
     @api.errorhandler(ValidationException)
     def handle_validation_exception(e):

@@ -3,16 +3,15 @@ from datetime import datetime
 from app.models.Availability import Availability
 from app.models.Parameter import Parameter
 from app import app
-from sqlalchemy import or_
-from geopy import distance
 
 class Offer(db.Model):
     __tablename__ = 'offers'
+    __searchable__ = ['category', 'name', 'description']
 
     id = db.Column(db.Integer, primary_key=True, nullable = False)
-    category = db.Column(db.String, nullable = False)
-    name = db.Column(db.String, nullable = False)
-    description = db.Column(db.String, nullable = False)
+    category = db.Column(db.Text, nullable = False)
+    name = db.Column(db.Text, nullable = False)
+    description = db.Column(db.Text, nullable = False)
     pricePerDay = db.Column(db.Float, nullable = False)
     bail = db.Column(db.Float, nullable = False)
     imageId = db.Column(db.Integer, nullable = True)
@@ -22,6 +21,9 @@ class Offer(db.Model):
     latitude = db.Column(db.Float, nullable = False)
     availabilityOn = db.Column(db.Integer, nullable = False, default = 0)
     
+    searchName = db.Column(db.Text, nullable = False)
+    searchDescription = db.Column(db.Text, nullable = False)
+
     userId = db.Column(db.Integer, db.ForeignKey('users.id'))
     user = db.relationship("User", back_populates="offers")
 
@@ -43,6 +45,9 @@ class Offer(db.Model):
         if query.city:
             queries = queries.filter(Offer.city == query.city)
 
+        if query.category:
+            queries = queries.filter(Offer.category == query.category)
+
         if query.minimumPrice:
             queries = queries.filter((Offer.pricePerDay > query.minimumPrice) | (Offer.pricePerDay == query.minimumPrice))
 
@@ -51,15 +56,9 @@ class Offer(db.Model):
 
         if query.content:
             splittedContent = query.content.split(' ')
-            queries = queries.filter((Offer.category.in_(splittedContent)) | (Offer.description.in_(splittedContent)) | (Offer.name.in_(splittedContent)))
-
-        # if query.longitude and query.latitude and query.maximumDistance:
-        #     coords_1 = (latitude, longitude)
-        #     coords_2 = (query.latitude, query.longitude)
-
-        #     distanceInKm = distance.distance(coords_1, coords_2).km
-
-        #     queries.filter(distanceInKm <= query.maximumDistance)
+            for sc in splittedContent:
+                sc = sc.lower()
+                queries = queries.filter((Offer.searchDescription.contains(sc)) | (Offer.searchName.contains(sc)))
 
         return queries.all()
 
@@ -81,6 +80,9 @@ class Offer(db.Model):
         self.longitude = details.longitude
         self.latitude = details.latitude
         self.availabilityOn = details.availabilityOn
+
+        self.searchDescription = details.description.lower()
+        self.searchName = details.name.lower()
 
         if isCreated == True:
             self.availability = Availability(
@@ -113,4 +115,3 @@ class Offer(db.Model):
     def dbUpdate(self):
         db.session.update(self)
         db.session.commit()
-

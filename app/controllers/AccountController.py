@@ -22,7 +22,7 @@ class AccountsLoginController(Resource):
     def post(self):
         data = AccountControllerParsers.userLoginParser.parse_args()
 
-        if validate_email(data.email):
+        if not validate_email(data.email):
             raise ValidationException('{} is not a valid email'.format(data.email), 'email')
 
         currentUser = User.findUserByEmail(data.email)

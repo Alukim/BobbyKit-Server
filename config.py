@@ -12,3 +12,4 @@ class Config(object):
     SWAGGER_UI_DOC_EXPANSION = 'list'
     RESTPLUS_MASK_SWAGGER = False
     FLASK_APP = 'bobby.py'
+    WHOOSH_BASE = os.path.join(basedir, 'search.db')

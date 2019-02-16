@@ -16,6 +16,7 @@ from app.models.Offer import Offer
 from app.models.Parameter import Parameter
 from app.models.Availability import Availability
 from app import ma
+from geopy import distance
 
 class OfferSchema(ma.ModelSchema):
     parameters = ma.Nested('ParameterSchema', many=True, exclude=('offer',))
@@ -66,8 +67,19 @@ class OffersController(Resource):
         query = offerControllerParsers.getOffersParser.parse_args()
 
         offers = Offer.getOffersWithPredicates(query)
+        filterdOffers = offers.copy()
+
+        if offers:
+            if query.longitude and query.latitude and query.maximumDistance:
+                coords_2 = (query.latitude, query.longitude)
+                for of in offers:
+                    coords_1 = (of.latitude, of.longitude)
+                    distanceInKm = distance.distance(coords_1, coords_2).km
+                    if distanceInKm > query.maximumDistance:
+                        filterdOffers.remove(of)
+
         offer_schema = OfferSchema(many=True)
-        return offer_schema.jsonify(offers)
+        return offer_schema.jsonify(filterdOffers)
         
 @offerControllerNamespace.response(400, 'Validation error', error_model)
 @offerControllerNamespace.response(500, 'Server error', error_model)

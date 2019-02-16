@@ -18,4 +18,4 @@ class CoordinateController(Resource):
 
         distanceInKm = distance.distance(coords_1, coords_2).km
 
-        return distanceResponse.serialize(distanceInKm), 200
+        return DistanceResponse.serialize(distanceInKm), 200

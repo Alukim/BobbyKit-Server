@@ -6,6 +6,7 @@ class Availability(db.Model):
     id = db.Column(db.Integer, primary_key=True, nullable = False)
     userId = db.Column(db.Integer, index=True, nullable = True)
     isBooked = db.Column(db.Boolean, index=True, nullable = False)
+    bookedFor = db.Column(db.Integer, nullable = True)
 
     offerId = db.Column(db.Integer, db.ForeignKey('offers.id'), unique=True)
     offer = db.relationship("Offer", back_populates = "availability")
