@@ -105,6 +105,10 @@ class OfferController(Resource):
 
     def get(self, id):
         offer = Offer.findOfferById(id)
+
+        if not offer:
+            return {'message': 'Offer with id: {} does not exist'.format(id)}, 404
+
         offer_schema = OfferSchema()
         return offer_schema.jsonify(offer)
 
