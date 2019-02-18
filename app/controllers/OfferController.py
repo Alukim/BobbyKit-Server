@@ -11,16 +11,18 @@ from flask import jsonify
 from flask_restplus import Resource, marshal_with
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 from app.controllers.parsers.OfferControllerParsers import offerControllerParsers
-from app.controllers.documentationModels.OfferControllerDocumentationModels import offerModel, bookToolModel
+from app.controllers.documentationModels.OfferControllerDocumentationModels import offerModel, bookToolModel, offerResponseModel
 from app.models.Offer import Offer
 from app.models.Parameter import Parameter
 from app.models.Availability import Availability
+from app.models.User import User
 from app import ma
 from geopy import distance
 
 class OfferSchema(ma.ModelSchema):
     parameters = ma.Nested('ParameterSchema', many=True, exclude=('offer',))
     availability = ma.Nested('AvailabilitySchema', many=False, exclude=('offer',))
+    user = ma.Nested('UserSchema', many=False, exclude=('offer',))
     class Meta:
         model = Offer
 
@@ -31,6 +33,10 @@ class ParameterSchema(ma.ModelSchema):
 class AvailabilitySchema(ma.ModelSchema):
     class Meta:
         model = Availability
+
+class UserSchema(ma.ModelSchema):
+    class Meta:
+        fields = ('email', 'firstName', 'id', 'lastName', 'imageId' )
 
 @offerControllerNamespace.response(400, 'Validation error', error_model)
 @offerControllerNamespace.response(500, 'Server error', error_model)

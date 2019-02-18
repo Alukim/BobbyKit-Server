@@ -105,7 +105,6 @@ class AccountsLogoutController(Resource):
 class AccountsController(Resource):
 
     @jwt_required
-    @accountControllerNamespace.marshal_with(userResponseModel)
     @accountControllerNamespace.doc(security='apikey')
     def get(self):
         userId = get_jwt_identity()
